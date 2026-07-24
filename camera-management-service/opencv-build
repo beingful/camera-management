@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OPENCV_SRC="$ROOT_DIR/src/openCV"
+BUILD_DIR="$OPENCV_SRC/build-ffmpeg"
+INSTALL_DIR="$ROOT_DIR/target/opencv-ffmpeg"
+JAVA_HOME="${JAVA_HOME:-$(/usr/libexec/java_home 2>/dev/null || true)}"
+FFMPEG_ROOT="${FFMPEG_ROOT:-/opt/homebrew/opt/ffmpeg@6}"
+
+if [[ "${1:-}" == "--clean" ]]; then
+  rm -rf "$BUILD_DIR" "$INSTALL_DIR"
+fi
+
+missing=()
+if [[ -d "$FFMPEG_ROOT/bin" ]]; then
+  export PATH="$FFMPEG_ROOT/bin:$PATH"
+fi
+
+for tool in cmake ffmpeg pkg-config ant; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    missing+=("$tool")
+  fi
+done
+
+if ((${#missing[@]} > 0)); then
+  echo "Missing required build tools: ${missing[*]}" >&2
+  echo "Install them with: brew install cmake ffmpeg@6 pkg-config ant" >&2
+  exit 1
+fi
+
+if [[ -z "$JAVA_HOME" || ! -f "$JAVA_HOME/include/jni.h" ]]; then
+  echo "Could not find a JDK with JNI headers. Set JAVA_HOME to a full JDK installation." >&2
+  exit 1
+fi
+
+if [[ ! -d "$FFMPEG_ROOT/lib/pkgconfig" ]]; then
+  echo "Could not find FFmpeg pkg-config files at $FFMPEG_ROOT/lib/pkgconfig." >&2
+  echo "Install a compatible FFmpeg with: brew install ffmpeg@6" >&2
+  echo "Or set FFMPEG_ROOT to another FFmpeg installation prefix." >&2
+  exit 1
+fi
+
+if [[ ! -d "$OPENCV_SRC/.git" && ! -f "$OPENCV_SRC/.git" ]]; then
+  echo "OpenCV source is missing. Run: git submodule update --init --recursive src/openCV" >&2
+  exit 1
+fi
+
+export JAVA_HOME
+export PKG_CONFIG_PATH="$FFMPEG_ROOT/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+export CPPFLAGS="-I$FFMPEG_ROOT/include ${CPPFLAGS:-}"
+export LDFLAGS="-L$FFMPEG_ROOT/lib ${LDFLAGS:-}"
+
+cmake -S "$OPENCV_SRC" -B "$BUILD_DIR" \
+  -D CMAKE_BUILD_TYPE=Release \
+  -D CMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+  -D CMAKE_POLICY_VERSION_MINIMUM=3.5 \
+  -D BUILD_LIST=core,imgproc,video,videoio,java \
+  -D BUILD_SHARED_LIBS=ON \
+  -D BUILD_opencv_java=ON \
+  -D BUILD_ZLIB=OFF \
+  -D BUILD_PNG=OFF \
+  -D BUILD_opencv_python2=OFF \
+  -D BUILD_opencv_python3=OFF \
+  -D BUILD_TESTS=OFF \
+  -D BUILD_PERF_TESTS=OFF \
+  -D BUILD_EXAMPLES=OFF \
+  -D WITH_FFMPEG=ON \
+  -D OPENCV_GENERATE_PKGCONFIG=OFF \
+  -D Java_JAVA_EXECUTABLE="$JAVA_HOME/bin/java" \
+  -D Java_JAVAC_EXECUTABLE="$JAVA_HOME/bin/javac" \
+  -D Java_JAR_EXECUTABLE="$JAVA_HOME/bin/jar" \
+  -D JAVA_AWT_INCLUDE_PATH="$JAVA_HOME/include" \
+  -D JAVA_AWT_LIBRARY="$JAVA_HOME/lib/libjawt.dylib" \
+  -D JAVA_INCLUDE_PATH="$JAVA_HOME/include" \
+  -D JAVA_INCLUDE_PATH2="$JAVA_HOME/include/darwin" \
+  -D JAVA_JVM_LIBRARY="$JAVA_HOME/lib/server/libjvm.dylib"
+
+cmake --build "$BUILD_DIR" --target install -j"$(sysctl -n hw.ncpu)"
+
+JAVA_LIB="$(find "$INSTALL_DIR" -name 'libopencv_java*.dylib' -print -quit)"
+if [[ -z "$JAVA_LIB" ]]; then
+  echo "Build finished, but libopencv_java*.dylib was not found under $INSTALL_DIR" >&2
+  exit 1
+fi
+
+echo "OpenCV Java library built at: $JAVA_LIB"
+echo "Run the app with: OPENCV_JAVA_LIBRARY=\"$JAVA_LIB\""

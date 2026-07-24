@@ -1,0 +1,6 @@
+history: 500
+varThreshold: 16.0
+detectShadows: true
+learningRate: -1.0
+minimumMotionArea: 1500.0
+motionEndFrameCount: 15
