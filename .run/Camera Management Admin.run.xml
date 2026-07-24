@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Camera Management Admin" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="admin.CameraManagementAdmin" />
+    <module name="camera-management-admin" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/camera-management-admin" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

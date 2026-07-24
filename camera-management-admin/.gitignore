@@ -1,9 +1,0 @@
-out/
-build/
-target/
-.gradle/
-.idea/
-.vscode/
-*.class
-*.log
-.DS_Store

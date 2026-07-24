@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/camera-management-admin/camera-management-admin.iml" filepath="$PROJECT_DIR$/camera-management-admin/camera-management-admin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/camera-management-service/camera-management-service.iml" filepath="$PROJECT_DIR$/camera-management-service/camera-management-service.iml" />
+    </modules>
+  </component>
+</project>

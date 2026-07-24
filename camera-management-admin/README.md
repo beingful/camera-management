@@ -4,11 +4,11 @@ Java Swing desktop admin app for editing camera management configuration files.
 
 ## Run
 
-```bash
-./run.sh
-```
+Use the committed IntelliJ run configuration:
 
-By default, the app edits:
+- `Camera Management Admin`
 
-- `/Users/hanna/IdeaProjects/camera-management/camera-management-service/src/camera/configuration/files/cameras.yaml`
-- `/Users/hanna/IdeaProjects/camera-management/camera-management-service/src/camera/configuration/files/motion-detection.yaml`
+By default, the app edits the service configuration files under:
+
+- `../camera-management-service/src/camera/configuration/files/cameras.yaml`
+- `../camera-management-service/src/camera/configuration/files/motion-detection.yaml`
