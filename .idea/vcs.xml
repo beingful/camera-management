@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/camera-management-admin" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/camera-management-service" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/camera-management-service/camera-management-admin" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/camera-management-service/src/openCV" vcs="Git" />
   </component>
 </project>
