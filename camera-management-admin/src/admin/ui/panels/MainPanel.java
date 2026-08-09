@@ -1,8 +1,7 @@
-package admin.ui;
+package admin.ui.panels;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -12,6 +11,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 
 public class MainPanel extends JPanel {
+    private static final Dimension OPTION_BUTTON_SIZE = new Dimension(270, 108);
+
     public MainPanel(Runnable openCamera, Runnable openMotion) {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(32, 32, 32, 32));
@@ -20,6 +21,7 @@ public class MainPanel extends JPanel {
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(12, 12, 12, 12);
         constraints.fill = GridBagConstraints.NONE;
+        constraints.anchor = GridBagConstraints.CENTER;
 
         JButton cameraButton = optionButton("Camera");
         cameraButton.addActionListener(event -> openCamera.run());
@@ -37,11 +39,8 @@ public class MainPanel extends JPanel {
 
     private JButton optionButton(String label) {
         JButton button = new JButton(label);
-        button.setFont(button.getFont().deriveFont(Font.BOLD, 18f));
-        Dimension size = new Dimension(190, 160);
-        button.setPreferredSize(size);
-        button.setMinimumSize(size);
-        button.setMaximumSize(size);
+        button.setFont(button.getFont().deriveFont(Font.BOLD, 28f));
+        button.setPreferredSize(OPTION_BUTTON_SIZE);
         return button;
     }
 }

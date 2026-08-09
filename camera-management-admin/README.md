@@ -8,6 +8,12 @@ Use the committed IntelliJ run configuration:
 
 - `Camera Management Admin`
 
+Or run it with Maven:
+
+```bash
+mvn exec:java
+```
+
 By default, the app edits the service configuration files under:
 
 - `../camera-management-service/src/camera/configuration/files/cameras.yaml`

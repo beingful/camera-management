@@ -1,6 +1,6 @@
 package admin;
 
-import admin.ui.AdminFrame;
+import admin.ui.frames.AdminFrame;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;

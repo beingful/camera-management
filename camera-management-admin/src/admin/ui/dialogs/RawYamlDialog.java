@@ -1,6 +1,8 @@
-package admin.ui;
+package admin.ui.dialogs;
 
 import admin.config.FileService;
+import admin.ui.UiSupport;
+import admin.ui.frames.AdminFrame;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -10,6 +12,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.nio.file.Path;
 
 public class RawYamlDialog extends JDialog {
@@ -40,8 +43,15 @@ public class RawYamlDialog extends JDialog {
         setLayout(new BorderLayout());
         add(new JScrollPane(textArea), BorderLayout.CENTER);
         add(buttons, BorderLayout.SOUTH);
-        setPreferredSize(new Dimension(780, 560));
         pack();
+        setSize(relativeSize(owner));
         setLocationRelativeTo(owner);
+    }
+
+    private Dimension relativeSize(JFrame owner) {
+        Dimension base = owner == null || owner.getWidth() == 0 || owner.getHeight() == 0
+                ? Toolkit.getDefaultToolkit().getScreenSize()
+                : owner.getSize();
+        return new Dimension((int) (base.width * 0.82), (int) (base.height * 0.82));
     }
 }

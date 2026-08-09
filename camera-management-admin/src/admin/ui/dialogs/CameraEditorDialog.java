@@ -1,6 +1,8 @@
-package admin.ui;
+package admin.ui.dialogs;
 
 import admin.model.CameraEntry;
+import admin.ui.UiSupport;
+import admin.ui.frames.AdminFrame;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;

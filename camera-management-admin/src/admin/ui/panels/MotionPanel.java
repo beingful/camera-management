@@ -1,8 +1,11 @@
-package admin.ui;
+package admin.ui.panels;
 
 import admin.config.FileService;
 import admin.config.MotionYamlService;
 import admin.model.MotionConfig;
+import admin.ui.UiSupport;
+import admin.ui.dialogs.RawYamlDialog;
+import admin.ui.frames.AdminFrame;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;

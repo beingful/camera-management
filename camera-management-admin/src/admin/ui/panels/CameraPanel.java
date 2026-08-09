@@ -1,9 +1,13 @@
-package admin.ui;
+package admin.ui.panels;
 
 import admin.config.CameraYamlService;
 import admin.config.FileService;
 import admin.model.CameraConfig;
 import admin.model.CameraEntry;
+import admin.ui.UiSupport;
+import admin.ui.dialogs.CameraEditorDialog;
+import admin.ui.dialogs.RawYamlDialog;
+import admin.ui.frames.AdminFrame;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;

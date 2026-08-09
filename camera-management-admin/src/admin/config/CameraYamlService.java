@@ -2,84 +2,41 @@ package admin.config;
 
 import admin.model.CameraConfig;
 import admin.model.CameraEntry;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CameraYamlService {
+    private final ObjectMapper objectMapper;
+
+    public CameraYamlService() {
+        objectMapper = new ObjectMapper(YAMLFactory.builder()
+                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                .build());
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
+
     public CameraConfig parse(String yaml) {
-        CameraConfig config = new CameraConfig();
-        CameraEntry currentCamera = null;
-        String section = "";
-
-        for (String line : yaml.split("\\R")) {
-            String trimmed = line.trim();
-
-            if (trimmed.isEmpty()) {
-                continue;
-            }
-
-            if (trimmed.equals("localStorage:")) {
-                section = "localStorage";
-                continue;
-            }
-
-            if (trimmed.equals("cameras:")) {
-                section = "cameras";
-                continue;
-            }
-
-            if (isCameraSection(trimmed)) {
-                section = sectionName(trimmed);
-                continue;
-            }
-
-            if (trimmed.startsWith("- ")) {
-                currentCamera = new CameraEntry();
-                config.cameras.add(currentCamera);
-                String remainder = trimmed.substring(2).trim();
-                if (isCameraSection(remainder)) {
-                    section = sectionName(remainder);
-                }
-                else if (!remainder.isEmpty()) {
-                    readCameraValue(currentCamera, section, remainder);
-                }
-                continue;
-            }
-
-            if (section.equals("localStorage")) {
-                readStorageValue(config, trimmed);
-            }
-            else if (currentCamera != null) {
-                readCameraValue(currentCamera, section, trimmed);
-            }
+        try {
+            return fromDocument(objectMapper.readValue(yaml, CameraDocument.class));
         }
-
-        return config;
+        catch (IOException exception) {
+            throw new IllegalArgumentException("Could not parse camera YAML.", exception);
+        }
     }
 
     public String write(CameraConfig config) {
-        StringBuilder yaml = new StringBuilder();
-        yaml.append("localStorage:\n");
-        yaml.append("  path: \"").append(escape(config.storagePath)).append("\"\n");
-        yaml.append("  fileExtension: \"").append(escape(config.fileExtension)).append("\"\n");
-        yaml.append("cameras:\n");
-
-        for (CameraEntry camera : config.cameras) {
-            yaml.append("  - identity:\n");
-            yaml.append("      id: ").append(camera.id).append("\n");
-            yaml.append("      name: \"").append(escape(camera.name)).append("\"\n");
-            yaml.append("    connection:\n");
-            yaml.append("      url: \"").append(escape(camera.url)).append("\"\n");
-            yaml.append("    frame:\n");
-            yaml.append("      rate: ").append(camera.rate).append("\n");
-            yaml.append("      width: ").append(camera.width).append("\n");
-            yaml.append("      height: ").append(camera.height).append("\n");
-            yaml.append("    streamingSettings:\n");
-            yaml.append("      streamingServiceCode: ").append(camera.streamingServiceCode).append("\n");
-            yaml.append("      encoding: \"").append(escape(camera.encoding)).append("\"\n");
+        try {
+            return objectMapper.writeValueAsString(toDocument(config));
         }
-
-        return yaml.toString();
+        catch (IOException exception) {
+            throw new IllegalArgumentException("Could not write camera YAML.", exception);
+        }
     }
 
     public boolean hasDuplicateCameraKeys(List<CameraEntry> cameras, CameraEntry selectedCamera) {
@@ -98,93 +55,86 @@ public class CameraYamlService {
         return false;
     }
 
-    private void readStorageValue(CameraConfig config, String line) {
-        String key = key(line);
-        String value = value(line);
+    private CameraConfig fromDocument(CameraDocument document) {
+        CameraConfig config = new CameraConfig();
+        config.storagePath = value(document.localStorage.path);
+        config.fileExtension = value(document.localStorage.fileExtension);
 
-        if (key.equals("path")) {
-            config.storagePath = value;
-        }
-        else if (key.equals("fileExtension")) {
-            config.fileExtension = value;
-        }
-    }
-
-    private void readCameraValue(CameraEntry camera, String section, String line) {
-        String key = key(line);
-        String value = value(line);
-
-        switch (section) {
-            case "identity" -> {
-                if (key.equals("id")) {
-                    camera.id = parseInt(value);
-                }
-                else if (key.equals("name")) {
-                    camera.name = value;
-                }
-            }
-            case "connection" -> {
-                if (key.equals("url")) {
-                    camera.url = value;
-                }
-            }
-            case "frame" -> {
-                if (key.equals("rate")) {
-                    camera.rate = parseInt(value);
-                }
-                else if (key.equals("width")) {
-                    camera.width = parseInt(value);
-                }
-                else if (key.equals("height")) {
-                    camera.height = parseInt(value);
-                }
-            }
-            case "streamingSettings" -> {
-                if (key.equals("streamingServiceCode")) {
-                    camera.streamingServiceCode = parseInt(value);
-                }
-                else if (key.equals("encoding")) {
-                    camera.encoding = value;
-                }
-            }
-            default -> {
-            }
-        }
-    }
-
-    private String key(String line) {
-        int index = line.indexOf(':');
-        return index < 0 ? line : line.substring(0, index).trim();
-    }
-
-    private String value(String line) {
-        int index = line.indexOf(':');
-        if (index < 0) {
-            return "";
+        for (CameraDocument.CameraNode node : document.cameras) {
+            CameraEntry camera = new CameraEntry();
+            camera.id = node.identity.id;
+            camera.name = value(node.identity.name);
+            camera.url = value(node.connection.url);
+            camera.rate = node.frame.rate;
+            camera.width = node.frame.width;
+            camera.height = node.frame.height;
+            camera.streamingServiceCode = node.streamingSettings.streamingServiceCode;
+            camera.encoding = value(node.streamingSettings.encoding);
+            config.cameras.add(camera);
         }
 
-        String value = line.substring(index + 1).trim();
-        if (value.startsWith("\"") && value.endsWith("\"") && value.length() >= 2) {
-            return value.substring(1, value.length() - 1);
+        return config;
+    }
+
+    private CameraDocument toDocument(CameraConfig config) {
+        CameraDocument document = new CameraDocument();
+        document.localStorage.path = value(config.storagePath);
+        document.localStorage.fileExtension = value(config.fileExtension);
+
+        for (CameraEntry camera : config.cameras) {
+            CameraDocument.CameraNode node = new CameraDocument.CameraNode();
+            node.identity.id = camera.id;
+            node.identity.name = value(camera.name);
+            node.connection.url = value(camera.url);
+            node.frame.rate = camera.rate;
+            node.frame.width = camera.width;
+            node.frame.height = camera.height;
+            node.streamingSettings.streamingServiceCode = camera.streamingServiceCode;
+            node.streamingSettings.encoding = value(camera.encoding);
+            document.cameras.add(node);
         }
 
-        return value;
+        return document;
     }
 
-    private int parseInt(String value) {
-        return Integer.parseInt(value.trim());
+    private String value(String value) {
+        return value == null ? "" : value;
     }
 
-    private boolean isCameraSection(String line) {
-        return line.equals("identity:") || line.equals("connection:")
-                || line.equals("frame:") || line.equals("streamingSettings:");
-    }
+    public static class CameraDocument {
+        public Storage localStorage = new Storage();
+        public List<CameraNode> cameras = new ArrayList<>();
 
-    private String sectionName(String line) {
-        return line.substring(0, line.length() - 1);
-    }
+        public static class Storage {
+            public String path = "";
+            public String fileExtension = "";
+        }
 
-    private String escape(String value) {
-        return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"");
+        public static class CameraNode {
+            public Identity identity = new Identity();
+            public Connection connection = new Connection();
+            public Frame frame = new Frame();
+            public StreamingSettings streamingSettings = new StreamingSettings();
+        }
+
+        public static class Identity {
+            public int id;
+            public String name = "";
+        }
+
+        public static class Connection {
+            public String url = "";
+        }
+
+        public static class Frame {
+            public int rate;
+            public int width;
+            public int height;
+        }
+
+        public static class StreamingSettings {
+            public int streamingServiceCode;
+            public String encoding = "";
+        }
     }
 }
