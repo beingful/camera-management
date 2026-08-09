@@ -1,0 +1,5 @@
+localStorage:
+  path: "build/test-records"
+  fileExtension: ".mp4"
+cameras: []
+

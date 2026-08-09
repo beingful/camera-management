@@ -1,0 +1,29 @@
+localStorage:
+  path: "build/test-records"
+  fileExtension: ".mp4"
+cameras:
+  - identity:
+      id: 1
+      name: "front"
+    connection:
+      url: "rtsp://localhost/front"
+    frame:
+      rate: 30
+      width: 1280
+      height: 720
+    streamingSettings:
+      streamingServiceCode: 1900
+      encoding: "mp4v"
+  - identity:
+      id: 2
+      name: "garage"
+    connection:
+      url: "rtsp://localhost/garage"
+    frame:
+      rate: 30
+      width: 1280
+      height: 720
+    streamingSettings:
+      streamingServiceCode: 1900
+      encoding: "mp4v"
+

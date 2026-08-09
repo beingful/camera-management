@@ -1,0 +1,17 @@
+localStorage:
+  path: "build/test-records"
+  fileExtension: ".mp4"
+cameras:
+  - identity:
+      id: 1
+      name: "front"
+    connection:
+      url: "rtsp://localhost/front-updated"
+    frame:
+      rate: 15
+      width: 1280
+      height: 720
+    streamingSettings:
+      streamingServiceCode: 1900
+      encoding: "mp4v"
+
