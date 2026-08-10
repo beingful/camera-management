@@ -14,7 +14,6 @@ build-*/
 
 ### Local runtime data ###
 .m2/
-camera-management-service/config/google-drive.yaml
 mediamtx/
 logs/
 records/
