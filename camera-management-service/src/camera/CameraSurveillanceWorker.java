@@ -6,8 +6,6 @@ import camera.logging.LoggerFactory;
 import camera.logging.ILogger;
 import camera.validation.ValidationSupport;
 
-import java.util.concurrent.TimeUnit;
-
 public class CameraSurveillanceWorker implements IErrorSubscriber {
     private final CameraSurveillanceController cameraSurveillanceController;
     private final ILogger logger;
@@ -24,16 +22,6 @@ public class CameraSurveillanceWorker implements IErrorSubscriber {
     public void start() {
         logger.info("Starting camera surveillance worker.");
         cameraSurveillanceController.connect();
-
-        try {
-            TimeUnit.MILLISECONDS.sleep(20000);
-        } catch (InterruptedException exception) {
-            logger.error("Camera surveillance worker thread was interrupted.", exception);
-            Thread.currentThread().interrupt();
-        }
-        finally {
-            cameraSurveillanceController.disconnect();
-        }
     }
 
     public void stop() {
