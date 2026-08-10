@@ -14,7 +14,7 @@ void main() {
 private void loadOpenCv() {
     String configuredLibraryPath = System.getenv("OPENCV_JAVA_LIBRARY");
     Path libraryPath = configuredLibraryPath == null || configuredLibraryPath.isBlank()
-            ? Path.of("target/opencv-ffmpeg/share/java/opencv4/libopencv_java490.dylib")
+            ? Path.of("src/openCV/build-ffmpeg/lib/libopencv_java490.dylib")
             : Path.of(configuredLibraryPath);
 
     if (!Files.isRegularFile(libraryPath)) {

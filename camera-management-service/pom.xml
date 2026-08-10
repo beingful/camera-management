@@ -15,9 +15,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.openpnp</groupId>
+            <groupId>org.opencv</groupId>
             <artifactId>opencv</artifactId>
-            <version>4.9.0-0</version>
+            <version>4.9.0-local</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/openCV/build-ffmpeg/bin/opencv-490.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
