@@ -11,6 +11,7 @@ public class ConfigurationFileResolver {
     private static final String CONFIGURATION_DIRECTORY_PROPERTY = "camera.configuration.directory";
     private static final String CONFIGURATION_DIRECTORY_ENVIRONMENT_VARIABLE = "CAMERA_CONFIGURATION_DIRECTORY";
     private static final String BUNDLED_CONFIGURATION_DIRECTORY = "camera/configuration/files";
+    private static final String BUILD_CONFIGURATION_DIRECTORY = "target/classes/camera/configuration/files";
     private static final String DEFAULT_CONFIGURATION_DIRECTORY = "config";
 
     public static Path resolve(String fileName) {
@@ -30,6 +31,26 @@ public class ConfigurationFileResolver {
         }
         catch (IOException exception) {
             throw new IllegalStateException("Could not resolve configuration file: " + fileName, exception);
+        }
+    }
+
+    public static Path resolveBuildOutput(String fileName) {
+        ValidationSupport.validateNotBlank("Configuration file name", fileName);
+
+        try {
+            Path configurationDirectory = Path.of(BUILD_CONFIGURATION_DIRECTORY).toAbsolutePath().normalize();
+            Files.createDirectories(configurationDirectory);
+
+            Path configurationFile = configurationDirectory.resolve(fileName).toAbsolutePath().normalize();
+
+            if (!Files.isRegularFile(configurationFile)) {
+                copyBundledConfiguration(fileName, configurationFile);
+            }
+
+            return configurationFile;
+        }
+        catch (IOException exception) {
+            throw new IllegalStateException("Could not resolve build output configuration file: " + fileName, exception);
         }
     }
 

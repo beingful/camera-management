@@ -11,7 +11,7 @@ import org.opencv.core.Size;
 public class CameraSetConfiguration extends Configuration<CameraSet> {
     public CameraSetConfiguration() {
         super(
-                ConfigurationFileResolver.resolve("cameras.yaml"),
+                ConfigurationFileResolver.resolveBuildOutput("cameras.yaml"),
                 new TypeReference<CameraSet>() {},
                 createObjectMapper()
         );

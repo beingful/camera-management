@@ -9,7 +9,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 public class MotionDetectionConfiguration extends Configuration<MotionDetectionSettings> {
     public MotionDetectionConfiguration() {
         super(
-                ConfigurationFileResolver.resolve("motion-detection.yaml"),
+                ConfigurationFileResolver.resolveBuildOutput("motion-detection.yaml"),
                 new TypeReference<MotionDetectionSettings>() {},
                 new ObjectMapper(new YAMLFactory())
         );
