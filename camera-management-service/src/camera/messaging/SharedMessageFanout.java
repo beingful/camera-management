@@ -4,23 +4,33 @@ import camera.validation.ValidationSupport;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class SharedMessageFanout<TMessage> implements IQueueSubscriber<TMessage> {
     private final List<IPullMessageQueue<SharedMessage<TMessage>>> queues;
     private final Function<TMessage, TMessage> messageCloner;
+    private final Consumer<TMessage> messageReleaser;
 
     public SharedMessageFanout(Collection<IPullMessageQueue<SharedMessage<TMessage>>> queues) {
-        this(queues, null);
+        this(queues, null, null);
     }
 
     public SharedMessageFanout(
             Collection<IPullMessageQueue<SharedMessage<TMessage>>> queues,
             Function<TMessage, TMessage> messageCloner) {
+        this(queues, messageCloner, null);
+    }
+
+    public SharedMessageFanout(
+            Collection<IPullMessageQueue<SharedMessage<TMessage>>> queues,
+            Function<TMessage, TMessage> messageCloner,
+            Consumer<TMessage> messageReleaser) {
         ValidationSupport.validateRequired("Queues", queues);
 
         this.queues = List.copyOf(queues);
         this.messageCloner = messageCloner;
+        this.messageReleaser = messageReleaser;
         for (IPullMessageQueue<SharedMessage<TMessage>> queue : this.queues) {
             ValidationSupport.validateRequired("Queue", queue);
         }
@@ -31,7 +41,7 @@ public class SharedMessageFanout<TMessage> implements IQueueSubscriber<TMessage>
         ValidationSupport.validateRequired("Message", message);
 
         if (queues.isEmpty()) {
-            closeAutoCloseable(message);
+            closeMessage(message);
             return;
         }
 
@@ -40,7 +50,7 @@ public class SharedMessageFanout<TMessage> implements IQueueSubscriber<TMessage>
             return;
         }
 
-        SharedMessage<TMessage> sharedMessage = new SharedMessage<>(message, queues.size());
+        SharedMessage<TMessage> sharedMessage = new SharedMessage<>(message, queues.size(), messageReleaser);
         RuntimeException fanoutException = null;
 
         for (IPullMessageQueue<SharedMessage<TMessage>> queue : queues) {
@@ -66,13 +76,21 @@ public class SharedMessageFanout<TMessage> implements IQueueSubscriber<TMessage>
 
         try {
             for (IPullMessageQueue<SharedMessage<TMessage>> queue : queues) {
+                TMessage queueMessage = null;
+                boolean enqueued = false;
+
                 try {
-                    TMessage queueMessage = messageCloner.apply(message);
+                    queueMessage = messageCloner.apply(message);
                     ValidationSupport.validateRequired("Cloned message", queueMessage);
 
-                    queue.enqueue(new SharedMessage<>(queueMessage, 1));
+                    queue.enqueue(new SharedMessage<>(queueMessage, 1, messageReleaser));
+                    enqueued = true;
                 }
                 catch (RuntimeException exception) {
+                    if (!enqueued) {
+                        closeMessage(queueMessage);
+                    }
+
                     if (fanoutException == null) {
                         fanoutException = new IllegalStateException("Could not fan out message to all queues.");
                     }
@@ -82,7 +100,7 @@ public class SharedMessageFanout<TMessage> implements IQueueSubscriber<TMessage>
             }
         }
         finally {
-            closeAutoCloseable(message);
+            closeMessage(message);
         }
 
         if (fanoutException != null) {
@@ -99,5 +117,18 @@ public class SharedMessageFanout<TMessage> implements IQueueSubscriber<TMessage>
                 throw new IllegalStateException("Could not close unconsumed message.", exception);
             }
         }
+    }
+
+    private void closeMessage(TMessage message) {
+        if (message == null) {
+            return;
+        }
+
+        if (messageReleaser != null) {
+            messageReleaser.accept(message);
+            return;
+        }
+
+        closeAutoCloseable(message);
     }
 }

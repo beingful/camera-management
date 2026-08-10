@@ -74,7 +74,7 @@ public class CameraRuntimeFactory {
         ICameraConnectivityController cameraConnectivityController = cameraConnectivityFactory.create(
                 camera.connection,
                 camera.streamingSettings,
-                new SharedMessageFanout<>(List.of(cameraFrameQueue, motionDetectionFrameQueue), Mat::clone),
+                new SharedMessageFanout<>(List.of(cameraFrameQueue, motionDetectionFrameQueue), Mat::clone, Mat::release),
                 cameraThreadPool,
                 logger);
 
